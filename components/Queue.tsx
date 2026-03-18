@@ -22,7 +22,7 @@ const Queue = () => {
 
           <CardContent className="px-8 py-14 md:px-14">
             <div className="flex flex-col items-center text-center">
-              <p className="mb-4 text-sm  font-semibold uppercase tracking-[0.25em] text-sky-600">
+              <p className="mb-4 text-sm  font-extrabold uppercase tracking-[0.25em] text-sky-600 text-xl">
                 Now Serving
               </p>
 
