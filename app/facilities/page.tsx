@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   Bell,
@@ -13,18 +13,19 @@ import {
   Sparkles,
   ArrowRight,
   Building2,
-} from "lucide-react";
-import { motion } from "framer-motion";
+  Users,
+} from "lucide-react"
+import { motion } from "framer-motion"
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 
 const facilities = [
   {
@@ -81,7 +82,7 @@ const facilities = [
     gradient: "from-amber-500 to-yellow-500",
     soft: "from-amber-50 to-yellow-50",
   },
-];
+]
 
 const supportFacilities = [
   {
@@ -99,7 +100,17 @@ const supportFacilities = [
     icon: ShieldCheck,
     text: "Safe and monitored clinic spaces for patients, visitors, and staff.",
   },
-];
+  {
+    title: "Pharmacy Services",
+    icon: Microscope,
+    text: "On-site pharmacy providing quick access to prescribed medications.",
+  },
+  {
+    title: "Waiting Lounge",
+    icon: Users,
+    text: "Comfortable seating area with a calm environment for patients and visitors.",
+  },
+]
 
 const container = {
   hidden: {},
@@ -108,7 +119,7 @@ const container = {
       staggerChildren: 0.1,
     },
   },
-};
+}
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -117,14 +128,14 @@ const fadeUp = {
     y: 0,
     transition: { duration: 0.5, ease: "easeOut" as const },
   },
-};
+}
 
 const FacilitiesPage = () => {
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
       {/* Page header */}
       <section className="border-b border-white/40 bg-white/60 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 lg:px-10 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 md:flex-row md:items-center md:justify-between lg:px-10">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -140,7 +151,7 @@ const FacilitiesPage = () => {
 
           <div className="flex items-center gap-3">
             <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
                 placeholder="Search facilities..."
                 className="h-11 w-72 rounded-full border-slate-200 bg-white/80 pl-9 focus-visible:ring-cyan-400"
@@ -159,8 +170,8 @@ const FacilitiesPage = () => {
       </section>
 
       <section className="relative mx-auto max-w-7xl px-6 py-8 lg:px-10">
-        <div className="absolute left-10 top-8 h-40 w-40 rounded-full bg-sky-300/20 blur-3xl" />
-        <div className="absolute right-10 top-24 h-52 w-52 rounded-full bg-cyan-300/20 blur-3xl" />
+        <div className="absolute top-8 left-10 h-40 w-40 rounded-full bg-sky-300/20 blur-3xl" />
+        <div className="absolute top-24 right-10 h-52 w-52 rounded-full bg-cyan-300/20 blur-3xl" />
 
         {/* Hero */}
         <motion.div
@@ -178,7 +189,7 @@ const FacilitiesPage = () => {
                   Clinic Infrastructure Overview
                 </div>
 
-                <h3 className="max-w-2xl text-3xl font-bold leading-tight text-slate-900 md:text-4xl">
+                <h3 className="max-w-2xl text-3xl leading-tight font-bold text-slate-900 md:text-4xl">
                   Modern facilities designed for{" "}
                   <span className="bg-gradient-to-r from-sky-600 to-cyan-500 bg-clip-text text-transparent">
                     efficient care
@@ -241,7 +252,7 @@ const FacilitiesPage = () => {
           className="mb-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3"
         >
           {facilities.map((facility) => {
-            const Icon = facility.icon;
+            const Icon = facility.icon
 
             return (
               <motion.div
@@ -287,14 +298,19 @@ const FacilitiesPage = () => {
                   </CardContent>
                 </Card>
               </motion.div>
-            );
+            )
           })}
         </motion.div>
 
         {/* Lower section */}
-        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <motion.div variants={fadeUp} initial="hidden" animate="show">
-            <Card className="rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur">
+        <div className="grid items-stretch gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            className="h-full"
+          >
+            <Card className="h-full rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur">
               <CardHeader>
                 <CardTitle className="text-xl font-bold text-slate-900">
                   Facility Highlights
@@ -307,7 +323,7 @@ const FacilitiesPage = () => {
 
               <CardContent className="space-y-4">
                 {supportFacilities.map((item, index) => {
-                  const Icon = item.icon;
+                  const Icon = item.icon
 
                   return (
                     <motion.div
@@ -329,14 +345,19 @@ const FacilitiesPage = () => {
                         </p>
                       </div>
                     </motion.div>
-                  );
+                  )
                 })}
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={fadeUp} initial="hidden" animate="show">
-            <Card className="overflow-hidden rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            className="h-full"
+          >
+            <Card className="flex h-full flex-col overflow-hidden rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur">
               <div className="h-2 bg-gradient-to-r from-violet-500 via-sky-500 to-cyan-500" />
               <CardHeader>
                 <CardTitle className="text-xl font-bold text-slate-900">
@@ -347,10 +368,11 @@ const FacilitiesPage = () => {
                 </CardDescription>
               </CardHeader>
 
-              <CardContent className="space-y-5">
+              <CardContent className="flex flex-1 flex-col space-y-5">
                 {[
                   { label: "Emergency Support", value: "96%" },
                   { label: "Room Availability", value: "82%" },
+                  { label: "Equipment Readiness", value: "91%" },
                 ].map((item, index) => (
                   <motion.div
                     key={item.label}
@@ -371,18 +393,20 @@ const FacilitiesPage = () => {
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: item.value }}
-                        transition={{ duration: 0.8, delay: 0.25 + index * 0.1 }}
+                        transition={{
+                          duration: 0.8,
+                          delay: 0.25 + index * 0.1,
+                        }}
                         className="h-3 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500"
                       />
                     </div>
                   </motion.div>
                 ))}
-
                 <motion.div
                   initial={{ opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.45, delay: 0.25 }}
-                  className="rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-500 p-5 text-white shadow-lg"
+                  className="mt-auto rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-500 p-5 text-white shadow-lg"
                 >
                   <p className="text-sm text-white/80">Overall Rating</p>
                   <p className="mt-2 text-3xl font-bold">Excellent</p>
@@ -397,7 +421,7 @@ const FacilitiesPage = () => {
         </div>
       </section>
     </main>
-  );
-};
+  )
+}
 
-export default FacilitiesPage;
+export default FacilitiesPage
