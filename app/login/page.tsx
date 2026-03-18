@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function LoginPage() {
+
+const LoginPage = () =>{
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
 
@@ -66,13 +68,13 @@ export default function LoginPage() {
             </form>
 
             <p className="mt-6 text-center text-sm text-slate-500">
-              Don&apos;t have an account?{" "}
-              <a
-                href="#"
+              Don't have an account?{" "}
+              <Link
+                href="/create-account"
                 className="font-semibold text-sky-600 transition hover:text-cyan-600"
               >
                 Create new account
-              </a>
+              </Link>
             </p>
           </CardContent>
         </Card>
@@ -80,3 +82,5 @@ export default function LoginPage() {
     </main>
   );
 }
+
+export default LoginPage;
