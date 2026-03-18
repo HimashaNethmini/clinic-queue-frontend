@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
       <header className="sticky top-5 z-20 border-b border-white/40 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-30 max-w-7xl items-center justify-between px-6 lg:px-10">
           {/* Website Name - Left */}
@@ -61,7 +60,6 @@ const Navbar = () => {
           </a>
         </nav>
       </header>
-    </main>
   );
 }
 export default Navbar
