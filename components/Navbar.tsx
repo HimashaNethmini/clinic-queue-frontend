@@ -17,18 +17,18 @@ const Navbar = () => {
 
           {/* Navigation */}
           <nav className="hidden items-center gap-4 rounded-full border border-slate-200 bg-white/70 px-2 py-2 shadow-sm md:flex">
-            <a
-              href="#"
+            <Link
+              href="/queue"
               className="rounded-full px-5 py-2 text-sm font-medium text-slate-600 transition hover:bg-sky-50 hover:text-sky-700"
             >
               Queue
-            </a>
-            <a
+            </Link>
+            <Link
               href="#"
               className="rounded-full px-5 py-2 text-sm font-medium text-slate-600 transition hover:bg-sky-50 hover:text-sky-700"
             >
               Our Facilities
-            </a>
+            </Link>
             <Link
               href="/about"
               className="rounded-full px-5 py-2 text-sm font-medium text-slate-600 transition hover:bg-cyan-50 hover:text-cyan-700"
@@ -47,15 +47,17 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         <nav className="flex items-center justify-center gap-3 border-t border-slate-200 px-4 py-3 md:hidden">
-          <a
+          <Link
             href="#"
             className="rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-md font-semibold text-white"
           >
             Queue
-          </a>
-          <a className="rounded-full px-4 py-2 text-md font-semibold text-slate-600">
+          </Link>
+          <Link 
+            href="#"
+            className="rounded-full px-4 py-2 text-md font-semibold text-slate-600">
             Our Facilities
-          </a>
+          </Link>
           <Link 
             href="/about"
             className="rounded-full px-4 py-2 text-md font-semibold text-slate-600">
