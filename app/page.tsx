@@ -1,5 +1,10 @@
-import Queue from "@/components/Queue"
+import Queue from '@/components/Queue'
 
-export default function HomePage() {
-  return <Queue />
+
+const page = () => {
+  return (
+    <Queue />
+  )
 }
+
+export default page
