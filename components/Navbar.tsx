@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const Navbar = () => {
   return (
@@ -28,12 +29,12 @@ const Navbar = () => {
             >
               Our Facilities
             </a>
-            <a
-              href="#"
+            <Link
+              href="/about"
               className="rounded-full px-5 py-2 text-sm font-medium text-slate-600 transition hover:bg-cyan-50 hover:text-cyan-700"
             >
               About Us
-            </a>
+            </Link>
           </nav>
 
           {/* Login Button - Right */}
@@ -55,9 +56,11 @@ const Navbar = () => {
           <a className="rounded-full px-4 py-2 text-md font-semibold text-slate-600">
             Our Facilities
           </a>
-          <a className="rounded-full px-4 py-2 text-md font-semibold text-slate-600">
+          <Link 
+            href="/about"
+            className="rounded-full px-4 py-2 text-md font-semibold text-slate-600">
             About Us
-          </a>
+          </Link>
         </nav>
       </header>
   );
