@@ -4,6 +4,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
+import Queue from "@/components/Queue";
 
 const fontSans = Geist({
   subsets: ["latin"],
