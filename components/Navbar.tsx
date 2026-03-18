@@ -39,9 +39,13 @@ const Navbar = () => {
 
           {/* Login Button - Right */}
           <div>
+            <Link 
+                href="/login"
+              >
             <Button className="rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-8 py-5 text-xl font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105 hover:shadow-sky-300">
-              Login
+                Login
             </Button>
+            </Link>
           </div>
         </div>
 
