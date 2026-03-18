@@ -24,7 +24,7 @@ const Navbar = () => {
               Queue
             </Link>
             <Link
-              href="#"
+              href="/facilities"
               className="rounded-full px-5 py-2 text-sm font-medium text-slate-600 transition hover:bg-sky-50 hover:text-sky-700"
             >
               Our Facilities
@@ -48,13 +48,13 @@ const Navbar = () => {
         {/* Mobile Navigation */}
         <nav className="flex items-center justify-center gap-3 border-t border-slate-200 px-4 py-3 md:hidden">
           <Link
-            href="#"
+            href="/queue"
             className="rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-md font-semibold text-white"
           >
             Queue
           </Link>
           <Link 
-            href="#"
+            href="/facilities"
             className="rounded-full px-4 py-2 text-md font-semibold text-slate-600">
             Our Facilities
           </Link>
