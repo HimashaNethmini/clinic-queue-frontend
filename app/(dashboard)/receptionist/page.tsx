@@ -415,8 +415,7 @@ const DashboardPage = () => {
                         value={patientName}
                         onChange={(e) => setPatientName(e.target.value)}
                         placeholder="Enter patient full name"
-                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base shadow-sm focus-visible:ring-cyan-400"
-                      />
+                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:border-cyan-400"                      />
                     </div>
 
                     <div className="space-y-2">
@@ -431,7 +430,7 @@ const DashboardPage = () => {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="Enter phone number"
-                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base shadow-sm focus-visible:ring-cyan-400"
+                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:border-cyan-400"
                       />
                     </div>
 
