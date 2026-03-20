@@ -1,56 +1,94 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+// import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { UserCredentials, UserCredentialsError } from "../types/User"
-import { login } from "../services/authService"
+// import { UserCredentials, UserCredentialsError } from "../types/User"
+// import { login } from "../services/authService"
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { Loader2 } from "lucide-react";
 
 const LoginPage = () => {
-  const router = useRouter()
 
-  const [userCredentials, setUserCredentials] = useState<UserCredentials>({
-    username: "",
-    password: "",
-  })
+    const { user, login, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<UserCredentialsError>({})
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserCredentials({
-      ...userCredentials,
-      [e.target.id]: e.target.value,
-    })
-  }
+  useEffect(() => {
+    if (user) {
+      router.push(user.role === 'DOCTOR' ? '/doctor' : '/receptionist');
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError({})
-
+    e.preventDefault();
+    setError('');
+    setLoading(true);
     try {
-      const data = await login(userCredentials)
-
-      console.log(data)
-
-      console.log("Login success:", data)
-
-      if (data.token) {
-        localStorage.setItem("token", data.token)
-      }
-
-      router.push("/dashboard")
+      await login(username, password);
     } catch (err: any) {
-      setError(err.response?.data)
+      setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cyan-50">
+        <Loader2 className="w-8 h-8 text-cyan-600 animate-spin" />
+      </div>
+    );
   }
+  // const router = useRouter()
+
+  // const [userCredentials, setUserCredentials] = useState<UserCredentials>({
+  //   username: "",
+  //   password: "",
+  // })
+
+  // const [loading, setLoading] = useState(false)
+  // const [error, setError] = useState<UserCredentialsError>({})
+
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setUserCredentials({
+  //     ...userCredentials,
+  //     [e.target.id]: e.target.value,
+  //   })
+  // }
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   setLoading(true)
+  //   setError({})
+
+  //   try {
+  //     const data = await login(userCredentials)
+
+  //     console.log(data)
+
+  //     console.log("Login success:", data)
+
+  //     if (data.token) {
+  //       localStorage.setItem("token", data.token)
+  //     }
+
+  //     router.push("/dashboard")
+  //   } catch (err: any) {
+  //     setError(err.response?.data)
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
+
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
@@ -80,16 +118,20 @@ const LoginPage = () => {
                   User Name
                 </Label>
                 <Input
-                  id="username"
+                  // id="username"
+                  // type="text"
+                  // name="username"
+                  // value={userCredentials.username}
+                  // onChange={handleChange}
                   type="text"
-                  name="username"
-                  value={userCredentials.username}
-                  onChange={handleChange}
-                  placeholder="Enter your User Name"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
+                required
                   className="h-12 rounded-xl border-slate-200 bg-white/80 text-black focus-visible:ring-cyan-400"
                 />
                 {error && (
-                  <p className="text-sm text-red-500">{error?.message}</p>
+                  <p className="text-sm text-red-500">{error}</p>
                 )}
               </div>
 
@@ -98,6 +140,7 @@ const LoginPage = () => {
                   <Label htmlFor="password" className="text-slate-700">
                     Password
                   </Label>
+
                   <a
                     href="#"
                     className="text-sm font-medium text-sky-600 transition hover:text-cyan-600"
@@ -106,15 +149,20 @@ const LoginPage = () => {
                   </a>
                 </div>
                 <Input
-                  id="password"
-                  type="password"
-                  name="password"
-                  value={userCredentials.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
+                  // id="password"
+                  // type="password"
+                  // name="password"
+                  // value={userCredentials.password}
+                  // onChange={handleChange}
+                  // placeholder="Enter your password"
+                     type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
                   className="h-12 rounded-xl border-slate-200 bg-white/80 text-black focus-visible:ring-cyan-400"
                 />
-                <p className="text-sm text-red-500">{error?.message}</p>
+                <p className="text-sm text-red-500">{error}</p>
               </div>
 
               <Button

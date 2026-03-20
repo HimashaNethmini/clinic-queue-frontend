@@ -4,6 +4,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
+import { AuthProvider } from "@/lib/auth-context";
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -28,8 +29,10 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <Navbar />
-          {children}
+                 <Navbar />
+          <AuthProvider>
+            {children}
+          </AuthProvider>
           </ThemeProvider>
       </body>
     </html>
