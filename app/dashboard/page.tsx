@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Activity,
   CalendarDays,
@@ -27,6 +29,8 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useCallback, useEffect, useState } from "react"
+import api from "@/lib/api"
 
 const sidebarItems = [
   { name: "Dashboard", icon: LayoutDashboard, active: true },
@@ -36,6 +40,23 @@ const sidebarItems = [
   { name: "Employee", icon: Users, active: false },
   { name: "Settings", icon: Settings, active: false },
 ]
+
+interface QueueEntry {
+  id: number
+  tokenNumber: number
+  patientName: string
+  phone: string
+  status: "WAITING" | "IN_PROGRESS" | "COMPLETED" | "NO_SHOW"
+  visitType: "WALK_IN" | "APPOINTMENT"
+  appointmentTime: string | null
+  createdAt: string
+}
+
+interface RegistrationResult {
+  tokenNumber: number
+  patientName: string
+  phone: string
+}
 
 const recentAppointments = [
   {
@@ -67,29 +88,6 @@ const doctorsOnDuty = [
   { name: "Dr. Fernando", specialty: "Dermatologist", patients: 6 },
 ]
 
-const todaysQueue = [
-  {
-    token: 1,
-    patient: "VSVSV",
-    type: "Walk-in",
-    phone: "565656565656565",
-    status: "Waiting",
-  },
-  {
-    token: 2,
-    patient: "djkkd",
-    type: "Walk-in",
-    phone: "02566556602022",
-    status: "Waiting",
-  },
-  {
-    token: 3,
-    patient: "bbbffbfb",
-    type: "Appt 13:00",
-    phone: "0000000000",
-    status: "Waiting",
-  },
-]
 
 function getStatusClasses(status: string) {
   switch (status) {
@@ -118,11 +116,92 @@ function getQueueStatusClasses(status: string) {
 }
 
 const DashboardPage = () => {
+  const [queue, setQueue] = useState<QueueEntry[]>([])
+  const [stats, setStats] = useState({
+    total: 0,
+    waiting: 0,
+    inProgress: 0,
+    completed: 0,
+  })
+
+  const [patientName, setPatientName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState<RegistrationResult | null>(null)
+  const [error, setError] = useState("")
+
+  const fetchQueue = useCallback(async () => {
+    try {
+      const res = await api.get("/api/queue/today")
+      const entries: QueueEntry[] = res.data
+      setQueue(entries)
+
+      const total = entries.length
+      const waiting = entries.filter((e) => e.status === "WAITING").length
+      const inProgress = entries.filter((e) => e.status === "IN_PROGRESS").length
+      const completed = entries.filter((e) => e.status === "COMPLETED").length
+
+      setStats({
+        total,
+        waiting,
+        inProgress,
+        completed,
+      })
+    } catch (err) {
+      console.error("Failed to fetch queue:", err)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchQueue()
+    const interval = setInterval(fetchQueue, 10000)
+    return () => clearInterval(interval)
+  }, [fetchQueue])
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!patientName.trim() || !phone.trim()) {
+      setError("Patient name and phone number are required")
+      return
+    }
+
+    setSubmitting(true)
+    setError("")
+    setSuccess(null)
+
+    try {
+      const res = await api.post("/api/patients/register", {
+        name: patientName.trim(),
+        phone: phone.trim(),
+      })
+
+      setSuccess({
+        tokenNumber: res.data.tokenNumber,
+        patientName: res.data.name || patientName.trim(),
+        phone: res.data.phone || phone.trim(),
+      })
+
+      setPatientName("")
+      setPhone("")
+      fetchQueue()
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Registration failed"
+
+      setError(msg)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
       <div className="flex min-h-screen">
         {/* Sidebar */}
-        <aside className="hidden w-72 border-r border-white/50 bg-white/75 backdrop-blur-xl lg:flex lg:flex-col">
+          <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-white/50 bg-white/75 backdrop-blur-xl lg:flex lg:flex-col">
           <div className="border-b border-slate-200/70 px-6 py-6">
             <div className="flex items-center gap-3">
               <p className="py-0.5 text-xl text-slate-500">Admin Panel</p>
@@ -155,7 +234,7 @@ const DashboardPage = () => {
         </aside>
 
         {/* Main */}
-        <section className="flex-1">
+        <section className="min-w-0 flex-1">
           {/* Topbar */}
           <header className="sticky top-0 z-20 border-b border-white/40 bg-white/80 backdrop-blur-xl">
             <div className="mx-auto flex h-20 items-center justify-between px-6 lg:px-10">
@@ -242,7 +321,7 @@ const DashboardPage = () => {
                       Total Tokens
                     </p>
                     <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                      128
+                      {stats.total}
                     </h3>
                     <p className="mt-1 text-xs text-emerald-600">
                       Issued today
@@ -261,7 +340,7 @@ const DashboardPage = () => {
                       Waiting
                     </p>
                     <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                      42
+                      {stats.waiting}
                     </h3>
                     <p className="mt-1 text-xs text-amber-600">In the queue</p>
                   </div>
@@ -278,7 +357,7 @@ const DashboardPage = () => {
                       In Progress
                     </p>
                     <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                      0
+                      {stats.inProgress}
                     </h3>
                     <p className="mt-1 text-xs text-emerald-600">
                       Being seen now
@@ -297,7 +376,7 @@ const DashboardPage = () => {
                       Completed
                     </p>
                     <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                      0
+                      {stats.completed}
                     </h3>
                     <p className="mt-1 text-xs text-amber-600">Visits done</p>
                   </div>
@@ -323,7 +402,7 @@ const DashboardPage = () => {
                 </CardHeader>
 
                 <CardContent>
-                  <form className="space-y-5">
+                  <form className="space-y-5" onSubmit={handleRegister}>
                     <div className="space-y-2">
                       <Label
                         htmlFor="patientName"
@@ -333,6 +412,8 @@ const DashboardPage = () => {
                       </Label>
                       <Input
                         id="patientName"
+                        value={patientName}
+                        onChange={(e) => setPatientName(e.target.value)}
                         placeholder="Enter patient full name"
                         className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base shadow-sm focus-visible:ring-cyan-400"
                       />
@@ -347,15 +428,33 @@ const DashboardPage = () => {
                       </Label>
                       <Input
                         id="phoneNumber"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
                         placeholder="Enter phone number"
                         className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base shadow-sm focus-visible:ring-cyan-400"
                       />
                     </div>
 
-                    <Button className="h-14 w-full rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-500 text-base font-semibold text-white shadow-lg shadow-cyan-200 transition-all hover:scale-[1.01]">
-                      Register & Issue Token
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="h-14 w-full rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-500 text-base font-semibold text-white shadow-lg shadow-cyan-200 transition-all hover:scale-[1.01]"
+                    >
+                      {submitting ? "Registering..." : "Register & Issue Token"}
                     </Button>
                   </form>
+
+                  {error && (
+                    <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                      {error}
+                    </div>
+                  )}
+
+                  {success && (
+                    <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                      Token #{success.tokenNumber} issued for {success.patientName}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -371,7 +470,7 @@ const DashboardPage = () => {
                   </div>
 
                   <div className="rounded-xl bg-cyan-100 px-4 py-2 text-sm font-semibold text-cyan-700">
-                    {todaysQueue.length} Patients
+                    {stats.total} Patients
                   </div>
                 </CardHeader>
 
@@ -397,37 +496,52 @@ const DashboardPage = () => {
                         </tr>
                       </thead>
 
+
+
                       <tbody>
-                        {todaysQueue.map((item, index) => (
-                          <tr
-                            key={`${item.token}-${item.patient}`}
-                            className={
-                              index !== todaysQueue.length - 1
-                                ? "border-b border-slate-100"
-                                : ""
-                            }
-                          >
+                        {queue.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="px-4 py-8 text-center text-sm text-slate-400"
+                            >
+                              No patients in the queue yet
+                            </td>
+                          </tr>
+                        ) : (
+                          queue.map((item, index) => (
+                            <tr
+                              key={item.id}
+                              className={
+                                index !== queue.length - 1
+                                  ? "border-b border-slate-100"
+                                  : ""
+                              }
+                            >
+
                             <td className="px-4 py-4">
                               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-50 font-bold text-cyan-700">
-                                {item.token}
+                                {item.tokenNumber}
                               </div>
                             </td>
 
                             <td className="px-4 py-4 text-sm font-semibold text-slate-800">
-                              {item.patient}
+                              {item.patientName}
                             </td>
 
-                            <td className="px-4 py-4">
-                              <span
-                                className={`inline-flex rounded-xl px-3 py-1 text-xs font-semibold ${
-                                  item.type === "Walk-in"
-                                    ? "bg-slate-100 text-slate-600"
-                                    : "bg-violet-100 text-violet-700"
-                                }`}
-                              >
-                                {item.type}
-                              </span>
-                            </td>
+<td className="px-4 py-4">
+                                <span
+                                  className={`inline-flex rounded-xl px-3 py-1 text-xs font-semibold ${
+                                    item.visitType === "WALK_IN"
+                                      ? "bg-slate-100 text-slate-600"
+                                      : "bg-violet-100 text-violet-700"
+                                  }`}
+                                >
+                                  {item.visitType === "WALK_IN"
+                                    ? "Walk-in"
+                                    : `Appt ${item.appointmentTime || ""}`}
+                                </span>
+                              </td>
 
                             <td className="px-4 py-4 text-sm text-slate-600">
                               {item.phone}
@@ -439,11 +553,12 @@ const DashboardPage = () => {
                                   item.status
                                 )}`}
                               >
-                                {item.status}
+                                 {item.status.replace("_", " ")}
                               </span>
                             </td>
                           </tr>
-                        ))}
+                        ))
+                      )}
                       </tbody>
                     </table>
                 </CardContent>
