@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Activity,
   CalendarDays,
@@ -12,26 +14,49 @@ import {
   UserCheck,
   Wallet,
   Clock3,
-} from "lucide-react";
+  Ticket,
+  UserRound,
+  CheckCircle2,
+} from "lucide-react"
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useCallback, useEffect, useState } from "react"
+import api from "@/lib/api"
 
 const sidebarItems = [
   { name: "Dashboard", icon: LayoutDashboard, active: true },
-  { name: "Doctor", icon: Stethoscope, active: false },
   { name: "Appointments", icon: CalendarDays, active: false },
+  { name: "Doctor", icon: Stethoscope, active: false },
   { name: "Payment", icon: CreditCard, active: false },
   { name: "Employee", icon: Users, active: false },
   { name: "Settings", icon: Settings, active: false },
-];
+]
+
+interface QueueEntry {
+  id: number
+  tokenNumber: number
+  patientName: string
+  phone: string
+  status: "WAITING" | "IN_PROGRESS" | "COMPLETED" | "NO_SHOW"
+  visitType: "WALK_IN" | "APPOINTMENT"
+  appointmentTime: string | null
+  createdAt: string
+}
+
+interface RegistrationResult {
+  tokenNumber: number
+  patientName: string
+  phone: string
+}
 
 const recentAppointments = [
   {
@@ -55,42 +80,138 @@ const recentAppointments = [
     time: "10:30 AM",
     status: "Completed",
   },
-];
+]
 
 const doctorsOnDuty = [
   { name: "Dr. Silva", specialty: "General Physician", patients: 12 },
   { name: "Dr. Peris", specialty: "Pediatrician", patients: 8 },
   { name: "Dr. Fernando", specialty: "Dermatologist", patients: 6 },
-];
+]
+
 
 function getStatusClasses(status: string) {
   switch (status) {
     case "Confirmed":
-      return "bg-emerald-100 text-emerald-700 border border-emerald-200";
+      return "bg-emerald-100 text-emerald-700 border border-emerald-200"
     case "Pending":
-      return "bg-amber-100 text-amber-700 border border-amber-200";
+      return "bg-amber-100 text-amber-700 border border-amber-200"
     case "Completed":
-      return "bg-sky-100 text-sky-700 border border-sky-200";
+      return "bg-sky-100 text-sky-700 border border-sky-200"
     default:
-      return "bg-slate-100 text-slate-700 border border-slate-200";
+      return "bg-slate-100 text-slate-700 border border-slate-200"
   }
 }
+
+function getQueueStatusClasses(status: string) {
+  switch (status) {
+    case "Waiting":
+      return "bg-amber-100 text-amber-700 border border-amber-200"
+    case "In Progress":
+      return "bg-sky-100 text-sky-700 border border-sky-200"
+    case "Completed":
+      return "bg-emerald-100 text-emerald-700 border border-emerald-200"
+    default:
+      return "bg-slate-100 text-slate-700 border border-slate-200"
+  }
+}
+
 const DashboardPage = () => {
+  const [queue, setQueue] = useState<QueueEntry[]>([])
+  const [stats, setStats] = useState({
+    total: 0,
+    waiting: 0,
+    inProgress: 0,
+    completed: 0,
+  })
+
+  const [patientName, setPatientName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState<RegistrationResult | null>(null)
+  const [error, setError] = useState("")
+
+  const fetchQueue = useCallback(async () => {
+    try {
+      const res = await api.get("/api/queue/today")
+      const entries: QueueEntry[] = res.data
+      setQueue(entries)
+
+      const total = entries.length
+      const waiting = entries.filter((e) => e.status === "WAITING").length
+      const inProgress = entries.filter((e) => e.status === "IN_PROGRESS").length
+      const completed = entries.filter((e) => e.status === "COMPLETED").length
+
+      setStats({
+        total,
+        waiting,
+        inProgress,
+        completed,
+      })
+    } catch (err) {
+      console.error("Failed to fetch queue:", err)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchQueue()
+    const interval = setInterval(fetchQueue, 10000)
+    return () => clearInterval(interval)
+  }, [fetchQueue])
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!patientName.trim() || !phone.trim()) {
+      setError("Patient name and phone number are required")
+      return
+    }
+
+    setSubmitting(true)
+    setError("")
+    setSuccess(null)
+
+    try {
+      const res = await api.post("/api/patients/register", {
+        name: patientName.trim(),
+        phone: phone.trim(),
+      })
+
+      setSuccess({
+        tokenNumber: res.data.tokenNumber,
+        patientName: res.data.name || patientName.trim(),
+        phone: res.data.phone || phone.trim(),
+      })
+
+      setPatientName("")
+      setPhone("")
+      fetchQueue()
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Registration failed"
+
+      setError(msg)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
       <div className="flex min-h-screen">
         {/* Sidebar */}
-        <aside className="hidden w-72 border-r border-white/50 bg-white/75 backdrop-blur-xl lg:flex lg:flex-col">
+          <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-white/50 bg-white/75 backdrop-blur-xl lg:flex lg:flex-col">
           <div className="border-b border-slate-200/70 px-6 py-6">
             <div className="flex items-center gap-3">
-                <p className="text-xl text-slate-500 py-0.5">Admin Panel</p>
+              <p className="py-0.5 text-xl text-slate-500">Admin Panel</p>
             </div>
           </div>
 
           <div className="flex-1 px-4 py-6">
             <nav className="space-y-2">
               {sidebarItems.map((item) => {
-                const Icon = item.icon;
+                const Icon = item.icon
 
                 return (
                   <a
@@ -106,14 +227,14 @@ const DashboardPage = () => {
                     <Icon className="h-5 w-5" />
                     <span>{item.name}</span>
                   </a>
-                );
+                )
               })}
             </nav>
           </div>
         </aside>
 
         {/* Main */}
-        <section className="flex-1">
+        <section className="min-w-0 flex-1">
           {/* Topbar */}
           <header className="sticky top-0 z-20 border-b border-white/40 bg-white/80 backdrop-blur-xl">
             <div className="mx-auto flex h-20 items-center justify-between px-6 lg:px-10">
@@ -128,7 +249,7 @@ const DashboardPage = () => {
 
               <div className="flex items-center gap-3">
                 <div className="relative hidden md:block">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
                     placeholder="Search dashboard..."
                     className="h-11 w-72 rounded-full border-slate-200 bg-white/80 pl-9 focus-visible:ring-cyan-400"
@@ -147,8 +268,8 @@ const DashboardPage = () => {
           </header>
 
           <div className="relative px-6 py-8 lg:px-10">
-            <div className="absolute left-10 top-8 h-40 w-40 rounded-full bg-sky-300/20 blur-3xl" />
-            <div className="absolute right-10 top-24 h-52 w-52 rounded-full bg-cyan-300/20 blur-3xl" />
+            <div className="absolute top-8 left-10 h-40 w-40 rounded-full bg-sky-300/20 blur-3xl" />
+            <div className="absolute top-24 right-10 h-52 w-52 rounded-full bg-cyan-300/20 blur-3xl" />
 
             {/* Mobile nav */}
             <div className="relative mb-6 lg:hidden">
@@ -169,7 +290,7 @@ const DashboardPage = () => {
 
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {sidebarItems.map((item) => {
-                      const Icon = item.icon;
+                      const Icon = item.icon
                       return (
                         <a
                           key={item.name}
@@ -184,7 +305,7 @@ const DashboardPage = () => {
                           <Icon className="h-4 w-4" />
                           <span>{item.name}</span>
                         </a>
-                      );
+                      )
                     })}
                   </div>
                 </CardContent>
@@ -196,14 +317,50 @@ const DashboardPage = () => {
               <Card className="rounded-[24px] border border-white/60 bg-white/85 shadow-xl shadow-sky-100 backdrop-blur">
                 <CardContent className="flex items-center justify-between p-6">
                   <div>
-                    <p className="text-sm font-medium text-slate-500">
-                      Total Patients Today
+                    <p className="text-sm font-medium tracking-wide text-slate-500 uppercase">
+                      Total Tokens
                     </p>
                     <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                      128
+                      {stats.total}
                     </h3>
                     <p className="mt-1 text-xs text-emerald-600">
-                      +12% from yesterday
+                      Issued today
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-sky-100 p-3">
+                    <Ticket className="h-6 w-6 text-sky-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-[24px] border border-white/60 bg-white/85 shadow-xl shadow-sky-100 backdrop-blur">
+                <CardContent className="flex items-center justify-between p-6">
+                  <div>
+                    <p className="text-sm font-medium tracking-wide text-slate-500 uppercase">
+                      Waiting
+                    </p>
+                    <h3 className="mt-2 text-3xl font-bold text-slate-900">
+                      {stats.waiting}
+                    </h3>
+                    <p className="mt-1 text-xs text-amber-600">In the queue</p>
+                  </div>
+                  <div className="rounded-2xl bg-amber-100 p-3">
+                    <Clock3 className="h-6 w-6 text-amber-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-[24px] border border-white/60 bg-white/85 shadow-xl shadow-sky-100 backdrop-blur">
+                <CardContent className="flex items-center justify-between p-6">
+                  <div>
+                    <p className="text-sm font-medium tracking-wide text-slate-500 uppercase">
+                      In Progress
+                    </p>
+                    <h3 className="mt-2 text-3xl font-bold text-slate-900">
+                      {stats.inProgress}
+                    </h3>
+                    <p className="mt-1 text-xs text-emerald-600">
+                      Being seen now
                     </p>
                   </div>
                   <div className="rounded-2xl bg-sky-100 p-3">
@@ -215,64 +372,201 @@ const DashboardPage = () => {
               <Card className="rounded-[24px] border border-white/60 bg-white/85 shadow-xl shadow-sky-100 backdrop-blur">
                 <CardContent className="flex items-center justify-between p-6">
                   <div>
-                    <p className="text-sm font-medium text-slate-500">
-                      Appointments
+                    <p className="text-sm font-medium tracking-wide text-slate-500 uppercase">
+                      Completed
                     </p>
                     <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                      42
+                      {stats.completed}
                     </h3>
-                    <p className="mt-1 text-xs text-sky-600">
-                      31 confirmed today
-                    </p>
-                  </div>
-                  <div className="rounded-2xl bg-cyan-100 p-3">
-                    <CalendarDays className="h-6 w-6 text-cyan-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-[24px] border border-white/60 bg-white/85 shadow-xl shadow-sky-100 backdrop-blur">
-                <CardContent className="flex items-center justify-between p-6">
-                  <div>
-                    <p className="text-sm font-medium text-slate-500">
-                      Revenue Today
-                    </p>
-                    <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                      $2,480
-                    </h3>
-                    <p className="mt-1 text-xs text-emerald-600">
-                      +8.4% from last week
-                    </p>
+                    <p className="mt-1 text-xs text-amber-600">Visits done</p>
                   </div>
                   <div className="rounded-2xl bg-emerald-100 p-3">
-                    <Wallet className="h-6 w-6 text-emerald-600" />
+                    <CheckCircle2 className="h-6 w-6 text-emerald-600" />
                   </div>
                 </CardContent>
               </Card>
+            </div>
 
-              <Card className="rounded-[24px] border border-white/60 bg-white/85 shadow-xl shadow-sky-100 backdrop-blur">
-                <CardContent className="flex items-center justify-between p-6">
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"></div>
+
+            {/* Walk-in Register + Today's Queue */}
+            <div className="mb-6 grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+              <Card className="rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-2xl font-bold text-slate-900">
+                    Register Walk-in Patient
+                  </CardTitle>
+                  <CardDescription>
+                    Add a patient and issue a token instantly
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent>
+                  <form className="space-y-5" onSubmit={handleRegister}>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="patientName"
+                        className="text-sm font-semibold tracking-wide text-slate-600 uppercase"
+                      >
+                        Patient Name
+                      </Label>
+                      <Input
+                        id="patientName"
+                        value={patientName}
+                        onChange={(e) => setPatientName(e.target.value)}
+                        placeholder="Enter patient full name"
+                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:border-cyan-400"                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="phoneNumber"
+                        className="text-sm font-semibold tracking-wide text-slate-600 uppercase"
+                      >
+                        Phone Number
+                      </Label>
+                      <Input
+                        id="phoneNumber"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Enter phone number"
+                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:border-cyan-400"
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="h-14 w-full rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-500 text-base font-semibold text-white shadow-lg shadow-cyan-200 transition-all hover:scale-[1.01]"
+                    >
+                      {submitting ? "Registering..." : "Register & Issue Token"}
+                    </Button>
+                  </form>
+
+                  {error && (
+                    <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                      {error}
+                    </div>
+                  )}
+
+                  {success && (
+                    <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                      Token #{success.tokenNumber} issued for {success.patientName}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur">
+                <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div>
-                    <p className="text-sm font-medium text-slate-500">
-                      Avg. Wait Time
-                    </p>
-                    <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                      14m
-                    </h3>
-                    <p className="mt-1 text-xs text-amber-600">
-                      Peak hour at 11:00 AM
-                    </p>
+                    <CardTitle className="text-2xl font-bold text-slate-900">
+                      Today&apos;s Queue
+                    </CardTitle>
+                    <CardDescription>
+                      Live queue overview for today
+                    </CardDescription>
                   </div>
-                  <div className="rounded-2xl bg-amber-100 p-3">
-                    <Clock3 className="h-6 w-6 text-amber-600" />
+
+                  <div className="rounded-xl bg-cyan-100 px-4 py-2 text-sm font-semibold text-cyan-700">
+                    {stats.total} Patients
                   </div>
+                </CardHeader>
+
+                <CardContent>
+                    <table className="w-full min-w-[620px] border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200/80">
+                          <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                            Token
+                          </th>
+                          <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                            Patient
+                          </th>
+                          <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                            Type
+                          </th>
+                          <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                            Phone
+                          </th>
+                          <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+
+
+
+                      <tbody>
+                        {queue.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="px-4 py-8 text-center text-sm text-slate-400"
+                            >
+                              No patients in the queue yet
+                            </td>
+                          </tr>
+                        ) : (
+                          queue.map((item, index) => (
+                            <tr
+                              key={item.id}
+                              className={
+                                index !== queue.length - 1
+                                  ? "border-b border-slate-100"
+                                  : ""
+                              }
+                            >
+
+                            <td className="px-4 py-4">
+                              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-50 font-bold text-cyan-700">
+                                {item.tokenNumber}
+                              </div>
+                            </td>
+
+                            <td className="px-4 py-4 text-sm font-semibold text-slate-800">
+                              {item.patientName}
+                            </td>
+
+<td className="px-4 py-4">
+                                <span
+                                  className={`inline-flex rounded-xl px-3 py-1 text-xs font-semibold ${
+                                    item.visitType === "WALK_IN"
+                                      ? "bg-slate-100 text-slate-600"
+                                      : "bg-violet-100 text-violet-700"
+                                  }`}
+                                >
+                                  {item.visitType === "WALK_IN"
+                                    ? "Walk-in"
+                                    : `Appt ${item.appointmentTime || ""}`}
+                                </span>
+                              </td>
+
+                            <td className="px-4 py-4 text-sm text-slate-600">
+                              {item.phone}
+                            </td>
+
+                            <td className="px-4 py-4">
+                              <span
+                                className={`inline-flex rounded-xl px-3 py-1 text-xs font-semibold ${getQueueStatusClasses(
+                                  item.status
+                                )}`}
+                              >
+                                 {item.status.replace("_", " ")}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                      </tbody>
+                    </table>
                 </CardContent>
               </Card>
             </div>
 
             {/* Charts / visual summary */}
             <div className="mb-6 grid gap-6 xl:grid-cols-3">
-              <Card className="xl:col-span-2 rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur">
+              <Card className="rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur xl:col-span-2">
                 <CardHeader>
                   <CardTitle className="text-xl font-bold text-slate-900">
                     Weekly Patient Visits
@@ -497,7 +791,7 @@ const DashboardPage = () => {
         </section>
       </div>
     </main>
-  );
+  )
 }
 
-export default DashboardPage;
+export default DashboardPage
