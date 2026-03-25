@@ -1,7 +1,18 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth-context";
+import { usePathname } from "next/navigation";
 
 const Navbar = () => {
+  const { user, logout } = useAuth();
+  const pathname = usePathname();
+
+// is the page is receiptionist, return null
+//change into doctor-later
+  if (pathname === "/receptionist") return null
+
   return (
       <header className="sticky top-5 z-20 border-b border-white/40 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-30 max-w-7xl items-center justify-between px-6 lg:px-10">
