@@ -9,9 +9,10 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const pathname = usePathname();
 
-// is the page is receiptionist, return null
-//change into doctor-later
+// if the page is receiptionist, return null
   if (pathname === "/receptionist") return null
+  if (pathname.startsWith("/receptionist/doctor")) return null
+  if (pathname.startsWith("/receptionist/queue")) return null
 
   return (
       <header className="sticky top-5 z-20 border-b border-white/40 bg-white/80 backdrop-blur-xl">
