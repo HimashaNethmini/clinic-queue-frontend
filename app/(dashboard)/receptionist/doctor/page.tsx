@@ -28,12 +28,14 @@ import { Doctor } from "@/app/types/doctor"
 
 function getStatusClasses(status: string) {
   switch (status) {
-    case "Duty":
+    case "DUTY":
       return "bg-emerald-100 text-emerald-700 border border-emerald-200"
 
-    default:
-      // case "Leave":
+    case "LEAVE":
       return "bg-rose-100 text-rose-700 border border-rose-200"
+
+    default:
+      return "bg-slate-100 text-slate-700 border border-slate-200"
   }
 }
 

@@ -16,9 +16,12 @@ import { Label } from "@/components/ui/label"
 import TopbarDate from "@/components/topbar-date"
 import { createDoctor } from "../../../../services/doctorService"
 import { CreateDoctorDto } from "@/app/types/doctor"
+import { useRouter } from "next/navigation"
 
 
 export default function AddDoctorPage() {
+  const router = useRouter()
+
   const [formData, setFormData] = useState<CreateDoctorDto>({
     name: "",
     email: "",
@@ -47,7 +50,7 @@ export default function AddDoctorPage() {
     try {
       setLoading(true)
       await createDoctor(formData)
-      alert("Doctor added successfully!")
+      router.push("/receptionist/doctor")
 
       setFormData({
         name: "",
