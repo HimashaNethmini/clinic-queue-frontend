@@ -27,6 +27,18 @@ export const getDoctorById = async (
   return response.data
 }
 
+export const updateDoctor = async (
+  id: string,
+  doctorData: CreateDoctorDto
+) => {
+  const response = await axios.patch(
+    `${API_URL}/${id}`,
+    doctorData
+  )
+
+  return response.data
+}
+
 export const deleteDoctor = async (
   id: string
 ) => {

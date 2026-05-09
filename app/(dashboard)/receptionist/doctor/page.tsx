@@ -248,14 +248,17 @@ export default function DoctorPage() {
 
                         <td className="px-6 py-4 text-sm">
                           <div className="flex items-center gap-2">
-                            {/* EDIT */}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="rounded-full hover:bg-sky-50"
+                            <Link
+                              href={`/receptionist/doctor/edit-doctor/${doctor.id}`}
                             >
-                              <Pencil className="h-4 w-4 text-sky-600" />
-                            </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="rounded-full hover:bg-sky-50"
+                              >
+                                <Pencil className="h-4 w-4 text-sky-600" />
+                              </Button>
+                            </Link>
 
                             {/* DELETE */}
                             <AlertDialog>
