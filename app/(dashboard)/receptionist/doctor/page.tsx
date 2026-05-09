@@ -1,6 +1,5 @@
 import {
   Bell,
-  Search,
   Plus,
   MoreHorizontal,
 } from "lucide-react";
@@ -14,6 +13,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import TopbarDate from "@/components/topbar-date";
 
 const doctors = [
   {
@@ -98,14 +98,7 @@ export default function DoctorPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-
-                <Input
-                  placeholder="Search doctors..."
-                  className="h-11 w-72 rounded-full border-slate-200 bg-white/80 pl-9 focus-visible:ring-cyan-400"
-                />
-              </div>
+              <TopbarDate />
 
               <Button
                 variant="ghost"
