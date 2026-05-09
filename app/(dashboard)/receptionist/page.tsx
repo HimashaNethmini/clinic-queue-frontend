@@ -2,20 +2,11 @@
 
 import {
   Activity,
-  CalendarDays,
-  CreditCard,
-  LayoutDashboard,
-  Settings,
-  Stethoscope,
   Users,
   Bell,
-  Search,
-  TrendingUp,
   UserCheck,
-  Wallet,
   Clock3,
   Ticket,
-  UserRound,
   CheckCircle2,
 } from "lucide-react"
 
@@ -31,15 +22,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useCallback, useEffect, useState } from "react"
 import api from "@/lib/api"
-
-const sidebarItems = [
-  { name: "Dashboard", icon: LayoutDashboard, active: true },
-  { name: "Appointments", icon: CalendarDays, active: false },
-  { name: "Doctor", icon: Stethoscope, active: false },
-  { name: "Payment", icon: CreditCard, active: false },
-  { name: "Employee", icon: Users, active: false },
-  { name: "Settings", icon: Settings, active: false },
-]
+import Link from "next/link"
+import TopbarDate from "@/components/topbar-date"
 
 interface QueueEntry {
   id: number
@@ -87,7 +71,6 @@ const doctorsOnDuty = [
   { name: "Dr. Peris", specialty: "Pediatrician", patients: 8 },
   { name: "Dr. Fernando", specialty: "Dermatologist", patients: 6 },
 ]
-
 
 function getStatusClasses(status: string) {
   switch (status) {
@@ -138,7 +121,9 @@ const DashboardPage = () => {
 
       const total = entries.length
       const waiting = entries.filter((e) => e.status === "WAITING").length
-      const inProgress = entries.filter((e) => e.status === "IN_PROGRESS").length
+      const inProgress = entries.filter(
+        (e) => e.status === "IN_PROGRESS"
+      ).length
       const completed = entries.filter((e) => e.status === "COMPLETED").length
 
       setStats({
@@ -200,38 +185,6 @@ const DashboardPage = () => {
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
       <div className="flex min-h-screen">
-        {/* Sidebar */}
-          <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-white/50 bg-white/75 backdrop-blur-xl lg:flex lg:flex-col">
-          <div className="border-b border-slate-200/70 px-6 py-6">
-            <div className="flex items-center gap-3">
-              <p className="py-0.5 text-xl text-slate-500">Admin Panel</p>
-            </div>
-          </div>
-
-          <div className="flex-1 px-4 py-6">
-            <nav className="space-y-2">
-              {sidebarItems.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <a
-                    key={item.name}
-                    href="#"
-                    className={[
-                      "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all",
-                      item.active
-                        ? "bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-lg shadow-sky-200"
-                        : "text-slate-600 hover:bg-white hover:text-sky-700 hover:shadow-sm",
-                    ].join(" ")}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span>{item.name}</span>
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-        </aside>
 
         {/* Main */}
         <section className="min-w-0 flex-1">
@@ -248,13 +201,7 @@ const DashboardPage = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="relative hidden md:block">
-                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    placeholder="Search dashboard..."
-                    className="h-11 w-72 rounded-full border-slate-200 bg-white/80 pl-9 focus-visible:ring-cyan-400"
-                  />
-                </div>
+                <TopbarDate />
 
                 <Button
                   variant="ghost"
@@ -270,47 +217,6 @@ const DashboardPage = () => {
           <div className="relative px-6 py-8 lg:px-10">
             <div className="absolute top-8 left-10 h-40 w-40 rounded-full bg-sky-300/20 blur-3xl" />
             <div className="absolute top-24 right-10 h-52 w-52 rounded-full bg-cyan-300/20 blur-3xl" />
-
-            {/* Mobile nav */}
-            <div className="relative mb-6 lg:hidden">
-              <Card className="overflow-hidden rounded-[24px] border border-white/60 bg-white/85 shadow-xl shadow-sky-100 backdrop-blur">
-                <div className="h-2 bg-gradient-to-r from-sky-400 via-cyan-500 to-blue-500" />
-                <CardContent className="p-5">
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-500 font-bold text-white shadow-md">
-                      CQ
-                    </div>
-                    <div>
-                      <h1 className="bg-gradient-to-r from-sky-600 to-cyan-500 bg-clip-text text-lg font-bold text-transparent">
-                        Clinic Queue
-                      </h1>
-                      <p className="text-sm text-slate-500">Admin Panel</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {sidebarItems.map((item) => {
-                      const Icon = item.icon
-                      return (
-                        <a
-                          key={item.name}
-                          href="#"
-                          className={[
-                            "flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium transition",
-                            item.active
-                              ? "bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow-md"
-                              : "bg-slate-50 text-slate-600",
-                          ].join(" ")}
-                        >
-                          <Icon className="h-4 w-4" />
-                          <span>{item.name}</span>
-                        </a>
-                      )
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
 
             {/* KPI cards */}
             <div className="relative mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -415,7 +321,8 @@ const DashboardPage = () => {
                         value={patientName}
                         onChange={(e) => setPatientName(e.target.value)}
                         placeholder="Enter patient full name"
-                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:border-cyan-400"                      />
+                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base text-slate-900 shadow-sm placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400"
+                      />
                     </div>
 
                     <div className="space-y-2">
@@ -430,7 +337,7 @@ const DashboardPage = () => {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="Enter phone number"
-                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base text-slate-900 placeholder:text-slate-400 shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:border-cyan-400"
+                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base text-slate-900 shadow-sm placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400"
                       />
                     </div>
 
@@ -451,7 +358,8 @@ const DashboardPage = () => {
 
                   {success && (
                     <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                      Token #{success.tokenNumber} issued for {success.patientName}
+                      Token #{success.tokenNumber} issued for{" "}
+                      {success.patientName}
                     </div>
                   )}
                 </CardContent>
@@ -474,50 +382,47 @@ const DashboardPage = () => {
                 </CardHeader>
 
                 <CardContent>
-                    <table className="w-full min-w-[620px] border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-200/80">
-                          <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
-                            Token
-                          </th>
-                          <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
-                            Patient
-                          </th>
-                          <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
-                            Type
-                          </th>
-                          <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
-                            Phone
-                          </th>
-                          <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
-                            Status
-                          </th>
+                  <table className="w-full min-w-[620px] border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200/80">
+                        <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                          Token
+                        </th>
+                        <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                          Patient
+                        </th>
+                        <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                          Type
+                        </th>
+                        <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                          Phone
+                        </th>
+                        <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                          Status
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {queue.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="px-4 py-8 text-center text-sm text-slate-400"
+                          >
+                            No patients in the queue yet
+                          </td>
                         </tr>
-                      </thead>
-
-
-
-                      <tbody>
-                        {queue.length === 0 ? (
-                          <tr>
-                            <td
-                              colSpan={5}
-                              className="px-4 py-8 text-center text-sm text-slate-400"
-                            >
-                              No patients in the queue yet
-                            </td>
-                          </tr>
-                        ) : (
-                          queue.map((item, index) => (
-                            <tr
-                              key={item.id}
-                              className={
-                                index !== queue.length - 1
-                                  ? "border-b border-slate-100"
-                                  : ""
-                              }
-                            >
-
+                      ) : (
+                        queue.map((item, index) => (
+                          <tr
+                            key={item.id}
+                            className={
+                              index !== queue.length - 1
+                                ? "border-b border-slate-100"
+                                : ""
+                            }
+                          >
                             <td className="px-4 py-4">
                               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-50 font-bold text-cyan-700">
                                 {item.tokenNumber}
@@ -528,19 +433,19 @@ const DashboardPage = () => {
                               {item.patientName}
                             </td>
 
-<td className="px-4 py-4">
-                                <span
-                                  className={`inline-flex rounded-xl px-3 py-1 text-xs font-semibold ${
-                                    item.visitType === "WALK_IN"
-                                      ? "bg-slate-100 text-slate-600"
-                                      : "bg-violet-100 text-violet-700"
-                                  }`}
-                                >
-                                  {item.visitType === "WALK_IN"
-                                    ? "Walk-in"
-                                    : `Appt ${item.appointmentTime || ""}`}
-                                </span>
-                              </td>
+                            <td className="px-4 py-4">
+                              <span
+                                className={`inline-flex rounded-xl px-3 py-1 text-xs font-semibold ${
+                                  item.visitType === "WALK_IN"
+                                    ? "bg-slate-100 text-slate-600"
+                                    : "bg-violet-100 text-violet-700"
+                                }`}
+                              >
+                                {item.visitType === "WALK_IN"
+                                  ? "Walk-in"
+                                  : `Appt ${item.appointmentTime || ""}`}
+                              </span>
+                            </td>
 
                             <td className="px-4 py-4 text-sm text-slate-600">
                               {item.phone}
@@ -552,122 +457,14 @@ const DashboardPage = () => {
                                   item.status
                                 )}`}
                               >
-                                 {item.status.replace("_", " ")}
+                                {item.status.replace("_", " ")}
                               </span>
                             </td>
                           </tr>
                         ))
                       )}
-                      </tbody>
-                    </table>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Charts / visual summary */}
-            <div className="mb-6 grid gap-6 xl:grid-cols-3">
-              <Card className="rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur xl:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-slate-900">
-                    Weekly Patient Visits
-                  </CardTitle>
-                  <CardDescription>
-                    Total clinic visits over the last 7 days
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent>
-                  <div className="flex h-72 items-end gap-4 rounded-2xl bg-gradient-to-br from-sky-50 to-cyan-50 p-6">
-                    {[
-                      { day: "Mon", value: 60 },
-                      { day: "Tue", value: 85 },
-                      { day: "Wed", value: 72 },
-                      { day: "Thu", value: 96 },
-                      { day: "Fri", value: 110 },
-                      { day: "Sat", value: 78 },
-                      { day: "Sun", value: 54 },
-                    ].map((item) => (
-                      <div
-                        key={item.day}
-                        className="flex flex-1 flex-col items-center justify-end gap-3"
-                      >
-                        <div className="flex w-full items-end justify-center">
-                          <div
-                            className="w-full rounded-t-2xl bg-gradient-to-t from-sky-500 to-cyan-400 shadow-md"
-                            style={{ height: `${item.value * 1.6}px` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium text-slate-500">
-                          {item.day}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-slate-900">
-                    Performance
-                  </CardTitle>
-                  <CardDescription>
-                    Key clinic efficiency metrics
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-5">
-                  <div className="rounded-2xl bg-slate-50 p-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-medium text-slate-600">
-                        Appointment Completion
-                      </span>
-                      <span className="text-sm font-semibold text-slate-800">
-                        84%
-                      </span>
-                    </div>
-                    <div className="h-3 rounded-full bg-slate-200">
-                      <div className="h-3 w-[84%] rounded-full bg-gradient-to-r from-sky-500 to-cyan-500" />
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-slate-50 p-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-medium text-slate-600">
-                        Doctor Availability
-                      </span>
-                      <span className="text-sm font-semibold text-slate-800">
-                        76%
-                      </span>
-                    </div>
-                    <div className="h-3 rounded-full bg-slate-200">
-                      <div className="h-3 w-[76%] rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" />
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-slate-50 p-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-medium text-slate-600">
-                        Payment Collection
-                      </span>
-                      <span className="text-sm font-semibold text-slate-800">
-                        91%
-                      </span>
-                    </div>
-                    <div className="h-3 rounded-full bg-slate-200">
-                      <div className="h-3 w-[91%] rounded-full bg-gradient-to-r from-violet-500 to-indigo-500" />
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-500 p-5 text-white shadow-lg">
-                    <div className="flex items-center gap-3">
-                      <TrendingUp className="h-6 w-6" />
-                      <div>
-                        <p className="text-sm text-white/80">Growth Rate</p>
-                        <p className="text-2xl font-bold">+18.2%</p>
-                      </div>
-                    </div>
-                  </div>
+                    </tbody>
+                  </table>
                 </CardContent>
               </Card>
             </div>
