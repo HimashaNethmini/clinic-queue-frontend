@@ -132,18 +132,18 @@ export default function AddDoctorPage() {
                   />
                 </div>
 
-<div className="flex gap-80 md:col-span-2">
-  <Button
-    variant="outline"
-    className="h-12 rounded-full border-slate-200 bg-white px-8 text-lg font-semibold hover:bg-sky-50 hover:text-sky-700"
-  >
-    Cancel
-  </Button>
+                <div className="flex gap-80 md:col-span-2">
+                  <Button
+                    variant="outline"
+                    className="h-12 rounded-full border-slate-200 bg-white px-8 text-lg font-semibold hover:bg-sky-50 hover:text-sky-700"
+                  >
+                    Cancel
+                  </Button>
 
-  <Button className="h-12 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-8 text-lg font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105">
-    <Plus className="mr-2 h-5 w-5" />
-    Add Doctor
-  </Button>
+                  <Button className="h-12 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-8 text-lg font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105">
+                    <Plus className="mr-2 h-5 w-5" />
+                    Add Doctor
+                  </Button>
                 </div>
               </form>
             </CardContent>
