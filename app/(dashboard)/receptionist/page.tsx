@@ -4,7 +4,6 @@ import {
   Activity,
   Users,
   Bell,
-  Search,
   UserCheck,
   Clock3,
   Ticket,
@@ -24,6 +23,7 @@ import { Label } from "@/components/ui/label"
 import { useCallback, useEffect, useState } from "react"
 import api from "@/lib/api"
 import Link from "next/link"
+import TopbarDate from "@/components/topbar-date"
 
 interface QueueEntry {
   id: number
@@ -201,13 +201,7 @@ const DashboardPage = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="relative hidden md:block">
-                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    placeholder="Search dashboard..."
-                    className="h-11 w-72 rounded-full border-slate-200 bg-white/80 pl-9 focus-visible:ring-cyan-400"
-                  />
-                </div>
+                <TopbarDate />
 
                 <Button
                   variant="ghost"
@@ -223,27 +217,6 @@ const DashboardPage = () => {
           <div className="relative px-6 py-8 lg:px-10">
             <div className="absolute top-8 left-10 h-40 w-40 rounded-full bg-sky-300/20 blur-3xl" />
             <div className="absolute top-24 right-10 h-52 w-52 rounded-full bg-cyan-300/20 blur-3xl" />
-
-            {/* Mobile nav */}
-            <div className="relative mb-6 lg:hidden">
-              <Card className="overflow-hidden rounded-[24px] border border-white/60 bg-white/85 shadow-xl shadow-sky-100 backdrop-blur">
-                <div className="h-2 bg-gradient-to-r from-sky-400 via-cyan-500 to-blue-500" />
-                <CardContent className="p-5">
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-500 font-bold text-white shadow-md">
-                      CQ
-                    </div>
-                    <div>
-                      <h1 className="bg-gradient-to-r from-sky-600 to-cyan-500 bg-clip-text text-lg font-bold text-transparent">
-                        Clinic Queue
-                      </h1>
-                      <p className="text-sm text-slate-500">Admin Panel</p>
-                    </div>
-                  </div>
-
-                </CardContent>
-              </Card>
-            </div>
 
             {/* KPI cards */}
             <div className="relative mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
