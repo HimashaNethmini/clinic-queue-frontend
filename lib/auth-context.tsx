@@ -1,14 +1,18 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 import { useRouter } from 'next/navigation';
-import api from './api';
 
 interface User {
   username: string;
   fullName: string;
-  role: 'DOCTOR' | 'RECEPTIONIST';
-  token: string;
+  role: 'ADMIN';
 }
 
 interface AuthContextType {
@@ -20,6 +24,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const STATIC_USER: User = {
+  username: 'admin',
+  fullName: 'System Admin',
+  role: 'ADMIN',
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,27 +38,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem('cliniq_user');
     if (stored) {
-      try { setUser(JSON.parse(stored)); } catch { localStorage.removeItem('cliniq_user'); }
+      try {
+        setUser(JSON.parse(stored));
+      } catch {
+        localStorage.removeItem('cliniq_user');
+      }
     }
     setIsLoading(false);
   }, []);
 
   const login = async (username: string, password: string) => {
-    const res = await api.post('/api/auth/login', { username, password });
-    const userData: User = {
-      username: res.data.username,
-      fullName: res.data.fullName,
-      role: res.data.role,
-      token: res.data.token,
-    };
-    localStorage.setItem('cliniq_token', userData.token);
-    localStorage.setItem('cliniq_user', JSON.stringify(userData));
-    setUser(userData);
-    router.push(userData.role === 'DOCTOR' ? '/doctor' : '/receptionist');
+    // simple static check
+    if (username === 'admin' && password === 'admin123') {
+      localStorage.setItem('cliniq_user', JSON.stringify(STATIC_USER));
+      setUser(STATIC_USER);
+      router.push('/dashboard'); // or any default route
+    } else {
+      throw new Error('Invalid username or password');
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('cliniq_token');
     localStorage.removeItem('cliniq_user');
     setUser(null);
     router.push('/login');

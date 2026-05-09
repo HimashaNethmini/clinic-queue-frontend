@@ -1,4 +1,7 @@
-import { Bell, Search, Plus } from "lucide-react"
+"use client"
+
+import { useState } from "react"
+import { Bell,Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,8 +14,60 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import TopbarDate from "@/components/topbar-date"
+import { createDoctor } from "../../../../services/doctorService"
+import { CreateDoctorDto } from "@/app/types/doctor"
+import { useRouter } from "next/navigation"
+
 
 export default function AddDoctorPage() {
+  const router = useRouter()
+
+  const [formData, setFormData] = useState<CreateDoctorDto>({
+    name: "",
+    email: "",
+    phone: "",  
+    specialization: "GENERAL_PHYSICIAN",
+    availableTime: "",
+    status: "DUTY",
+  })
+
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setFormData({ 
+      ...formData, 
+      [e.target.name]: e.target.value,
+    })
+  }
+
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
+    e.preventDefault()
+
+    try {
+      setLoading(true)
+      await createDoctor(formData)
+      router.push("/receptionist/doctor")
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        specialization: "GENERAL_PHYSICIAN",
+        availableTime: "",
+        status: "DUTY",
+      })
+    } catch (error) {
+      console.error("Error adding doctor:", error)
+      alert("Failed to add doctor.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
       <section className="min-h-screen">
@@ -58,11 +113,15 @@ export default function AddDoctorPage() {
             </CardHeader>
 
             <CardContent>
-              <form className="grid gap-6 md:grid-cols-2">
+              <form 
+              onSubmit={handleSubmit}
+              className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="doctorName">Doctor Name</Label>
                   <Input
-                    id="doctorName"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     placeholder="Enter doctor name"
                     className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
                   />
@@ -70,18 +129,37 @@ export default function AddDoctorPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="specialization">Specialization</Label>
-                  <Input
-                    id="specialization"
-                    placeholder="Cardiologist / Pediatrician / ENT"
-                    className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
-                  />
+                  <select
+                    name="specialization"
+                    value={formData.specialization}
+                    onChange={handleChange}
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3"
+                  >
+                    <option value="CONSULTANT_SURGEON">
+                      Consultant Surgeon
+                    </option>
+
+                    <option value="DERMATOLOGIST">
+                      Dermatologist
+                    </option>
+
+                    <option value="GENERAL_PHYSICIAN">
+                      General Physician
+                    </option>
+
+                    <option value="PEDIATRICIAN">
+                      Pediatrician
+                    </option>
+                  </select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="doctorEmail">Email</Label>
                   <Input
-                    id="doctorEmail"
+                    name="email"
                     type="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     placeholder="doctor@clinic.com"
                     className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
                   />
@@ -90,17 +168,11 @@ export default function AddDoctorPage() {
                 <div className="space-y-2">
                   <Label htmlFor="doctorPhone">Phone Number</Label>
                   <Input
-                    id="doctorPhone"
-                    placeholder="+94 77 123 4567"
-                    className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="availableDays">Available Days</Label>
-                  <Input
-                    id="availableDays"
-                    placeholder="Mon - Fri"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    maxLength={10}
+                    placeholder="077 123 4567"
                     className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
                   />
                 </div>
@@ -108,41 +180,42 @@ export default function AddDoctorPage() {
                 <div className="space-y-2">
                   <Label htmlFor="availableTime">Available Time</Label>
                   <Input
-                    id="availableTime"
+                    name="availableTime"
+                    value={formData.availableTime}
+                    onChange={handleChange}
                     placeholder="9:00 AM - 3:00 PM"
                     className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="consultationFee">Consultation Fee</Label>
-                  <Input
-                    id="consultationFee"
-                    placeholder="$50"
-                    className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="doctorStatus">Status</Label>
-                  <Input
-                    id="doctorStatus"
-                    placeholder="Available / Busy / On Leave"
-                    className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
-                  />
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3"
+                  >
+                    <option value="DUTY">Duty</option>
+                    <option value="LEAVE">Leave</option>
+                  </select>
                 </div>
 
                 <div className="flex gap-80 md:col-span-2">
                   <Button
+                    type="button"
                     variant="outline"
                     className="h-12 rounded-full border-slate-200 bg-white px-8 text-lg font-semibold hover:bg-sky-50 hover:text-sky-700"
                   >
                     Cancel
                   </Button>
 
-                  <Button className="h-12 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-8 text-lg font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105">
+                  <Button 
+                    type="submit"
+                    disabled={loading}
+                    className="h-12 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-8 text-lg font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105">
                     <Plus className="mr-2 h-5 w-5" />
-                    Add Doctor
+                    {loading ? "Adding..." : "Add Doctor"}
                   </Button>
                 </div>
               </form>

@@ -1,5 +1,7 @@
-import { Bell, Plus, MoreHorizontal} from "lucide-react"
+"use client"
 
+import { useEffect, useState } from "react"
+import { Bell, Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -8,67 +10,28 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import TopbarDate from "@/components/topbar-date"
 import Link from "next/link"
-
-const doctors = [
-  {
-    id: "DOC-1001",
-    name: "Dr. Nimal Silva",
-    specialization: "General Physician",
-    schedule: "Mon - Fri",
-    time: "9:00 AM - 3:00 PM",
-    patients: 18,
-    status: "Available",
-  },
-  {
-    id: "DOC-1002",
-    name: "Dr. Kavindi Perera",
-    specialization: "Pediatrician",
-    schedule: "Mon - Sat",
-    time: "10:00 AM - 4:00 PM",
-    patients: 14,
-    status: "Busy",
-  },
-  {
-    id: "DOC-1003",
-    name: "Dr. Ashan Fernando",
-    specialization: "Dermatologist",
-    schedule: "Tue - Sat",
-    time: "11:00 AM - 5:00 PM",
-    patients: 10,
-    status: "Available",
-  },
-  {
-    id: "DOC-1004",
-    name: "Dr. Senuja Jayasuriya",
-    specialization: "Cardiologist",
-    schedule: "Mon - Thu",
-    time: "8:30 AM - 2:00 PM",
-    patients: 8,
-    status: "On Leave",
-  },
-  {
-    id: "DOC-1005",
-    name: "Dr. Rashmi Wickrama",
-    specialization: "ENT Specialist",
-    schedule: "Wed - Sun",
-    time: "1:00 PM - 6:00 PM",
-    patients: 12,
-    status: "Available",
-  },
-]
+import { getAllDoctors, deleteDoctor } from "@/app/services/doctorService"
+import { Doctor } from "@/app/types/doctor"
 
 function getStatusClasses(status: string) {
   switch (status) {
-    case "Available":
+    case "DUTY":
       return "bg-emerald-100 text-emerald-700 border border-emerald-200"
 
-    case "Busy":
-      return "bg-amber-100 text-amber-700 border border-amber-200"
-
-    case "On Leave":
+    case "LEAVE":
       return "bg-rose-100 text-rose-700 border border-rose-200"
 
     default:
@@ -77,6 +40,38 @@ function getStatusClasses(status: string) {
 }
 
 export default function DoctorPage() {
+  const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDoctors()
+  }, [])
+
+  const fetchDoctors = async () => {
+    try {
+      const data = await getAllDoctors()
+      setDoctors(data)
+    } catch (error) {
+      console.error("Error fetching doctors:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteDoctor = async (id: string) => {
+    try {
+      await deleteDoctor(id)
+
+      setDoctors((prev) => prev.filter((doctor) => doctor.id !== id))
+
+      alert("Doctor deleted successfully")
+    } catch (error) {
+      console.error("Failed to delete doctor:", error)
+
+      alert("Failed to delete doctor")
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
       {/* Main content */}
@@ -121,7 +116,9 @@ export default function DoctorPage() {
                   Total Doctors
                 </p>
 
-                <h3 className="mt-2 text-3xl font-bold text-slate-900">24</h3>
+                <h3 className="mt-2 text-3xl font-bold text-slate-900">
+                  {doctors.length}
+                </h3>
               </CardContent>
             </Card>
 
@@ -131,7 +128,9 @@ export default function DoctorPage() {
                   Available Today
                 </p>
 
-                <h3 className="mt-2 text-3xl font-bold text-emerald-600">18</h3>
+                <h3 className="mt-2 text-3xl font-bold text-emerald-600">
+                  {doctors.filter((doctor) => doctor.status === "DUTY").length}
+                </h3>
               </CardContent>
             </Card>
 
@@ -139,7 +138,9 @@ export default function DoctorPage() {
               <CardContent className="p-6">
                 <p className="text-sm font-medium text-slate-500">On Leave</p>
 
-                <h3 className="mt-2 text-3xl font-bold text-rose-600">3</h3>
+                <h3 className="mt-2 text-3xl font-bold text-rose-600">
+                  {doctors.filter((doctor) => doctor.status === "LEAVE").length}
+                </h3>
               </CardContent>
             </Card>
           </div>
@@ -188,11 +189,7 @@ export default function DoctorPage() {
                       </th>
 
                       <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
-                        Schedule
-                      </th>
-
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
-                        Time
+                        AvailableTime
                       </th>
 
                       <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
@@ -232,11 +229,7 @@ export default function DoctorPage() {
                         </td>
 
                         <td className="px-6 py-4 text-sm text-slate-600">
-                          {doctor.schedule}
-                        </td>
-
-                        <td className="px-6 py-4 text-sm text-slate-600">
-                          {doctor.time}
+                          {doctor.availableTime}
                         </td>
 
                         <td className="px-6 py-4 text-sm text-slate-600">
@@ -249,18 +242,63 @@ export default function DoctorPage() {
                               doctor.status
                             )}`}
                           >
-                            {doctor.status}
+                            {doctor.status === "DUTY" ? "Duty" : "Leave"}
                           </span>
                         </td>
 
                         <td className="px-6 py-4 text-sm">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="rounded-full hover:bg-sky-50"
-                          >
-                            <MoreHorizontal className="h-5 w-5 text-slate-600" />
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/receptionist/doctor/edit-doctor/${doctor.id}`}
+                            >
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="rounded-full hover:bg-sky-50"
+                              >
+                                <Pencil className="h-4 w-4 text-sky-600" />
+                              </Button>
+                            </Link>
+
+                            {/* DELETE */}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="rounded-full hover:bg-rose-50"
+                                >
+                                  <Trash2 className="h-4 w-4 text-rose-600" />
+                                </Button>
+                              </AlertDialogTrigger>
+
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Delete Doctor
+                                  </AlertDialogTitle>
+
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this doctor?
+                                    This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                                  <AlertDialogAction
+                                    onClick={() =>
+                                      handleDeleteDoctor(doctor.id)
+                                    }
+                                    className="bg-rose-600 hover:bg-rose-700"
+                                  >
+                                    Yes, Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </td>
                       </tr>
                     ))}
