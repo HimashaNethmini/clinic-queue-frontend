@@ -1,18 +1,12 @@
-"use client";
+"use client"
 
-import {
-  LayoutDashboard,
-  Stethoscope,
-  ListOrdered,
-} from "lucide-react";
+import { LayoutDashboard, Stethoscope, ListOrdered, LogOut } from "lucide-react"
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
 const sidebarItems = [
   {
@@ -29,16 +23,15 @@ const sidebarItems = [
     name: "Queue",
     icon: ListOrdered,
     path: "/receptionist/queue",
-
-  }
-];
+  },
+]
 
 export default function ReceptionistLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100">
@@ -56,9 +49,7 @@ export default function ReceptionistLayout({
                 Clinic Queue
               </h1>
 
-              <p className="text-sm text-slate-500">
-                Admin Panel
-              </p>
+              <p className="text-sm text-slate-500">Admin Panel</p>
             </div>
           </div>
         </div>
@@ -67,9 +58,9 @@ export default function ReceptionistLayout({
         <div className="flex-1 px-4 py-6">
           <nav className="space-y-2">
             {sidebarItems.map((item) => {
-              const Icon = item.icon;
+              const Icon = item.icon
 
-              const active = pathname === item.path;
+              const active = pathname === item.path
 
               return (
                 <Link
@@ -85,13 +76,13 @@ export default function ReceptionistLayout({
                   <Icon className="h-5 w-5" />
                   <span>{item.name}</span>
                 </Link>
-              );
+              )
             })}
           </nav>
         </div>
 
         {/* Bottom Card */}
-        <div className="border-t border-slate-200/70 px-4 py-4">
+        {/* <div className="border-t border-slate-200/70 px-4 py-4">
           <Card className="border-0 bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-lg">
             <CardContent className="p-4">
               <p className="text-sm font-semibold">
@@ -104,7 +95,28 @@ export default function ReceptionistLayout({
                 place.
               </p>
             </CardContent>
+          </Card> */}
+
+        {/* Bottom Section */}
+        <div className="space-y-4 border-t border-slate-200/70 px-4 py-4">
+          <Card className="border-0 bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-lg">
+            <CardContent className="p-4">
+              <p className="text-sm font-semibold">Clinic Queue</p>
+
+              <p className="mt-1 text-xs text-white/85">
+                Manage doctors, schedules, staff, appointments, and clinic
+                operations in one place.
+              </p>
+            </CardContent>
           </Card>
+
+          <Button
+            variant="outline"
+            className="w-full justify-start rounded-2xl border-red-200 bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
         </div>
       </aside>
 
@@ -127,19 +139,16 @@ export default function ReceptionistLayout({
                     Clinic Queue
                   </h1>
 
-                  <p className="text-sm text-slate-500">
-                    Admin Panel
-                  </p>
+                  <p className="text-sm text-slate-500">Admin Panel</p>
                 </div>
               </div>
 
               {/* Mobile Links */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {sidebarItems.map((item) => {
-                  const Icon = item.icon;
+                  const Icon = item.icon
 
-                  const active =
-                    pathname === item.path;
+                  const active = pathname === item.path
 
                   return (
                     <Link
@@ -156,7 +165,7 @@ export default function ReceptionistLayout({
 
                       <span>{item.name}</span>
                     </Link>
-                  );
+                  )
                 })}
               </div>
             </CardContent>
@@ -167,5 +176,5 @@ export default function ReceptionistLayout({
         {children}
       </main>
     </div>
-  );
+  )
 }
