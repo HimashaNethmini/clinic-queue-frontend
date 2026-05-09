@@ -3,6 +3,7 @@
 import {
   LayoutDashboard,
   Stethoscope,
+  ListOrdered,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -24,6 +25,12 @@ const sidebarItems = [
     icon: Stethoscope,
     path: "/receptionist/doctor",
   },
+  {
+    name: "Queue",
+    icon: ListOrdered,
+    path: "/receptionist/queue",
+
+  }
 ];
 
 export default function ReceptionistLayout({
