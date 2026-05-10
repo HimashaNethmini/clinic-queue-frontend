@@ -24,16 +24,18 @@ import { useCallback, useEffect, useState } from "react"
 import api from "@/lib/api"
 import Link from "next/link"
 import TopbarDate from "@/components/topbar-date"
+import { createAppointment, getTodayQueue, updateAppointmentStatus } from "@/app/services/appointment"
+import { createDoctor } from "@/app/services/doctorService"
 
 interface QueueEntry {
-  id: number
+  id: string
   tokenNumber: number
   patientName: string
   phone: string
-  status: "WAITING" | "IN_PROGRESS" | "COMPLETED" | "NO_SHOW"
-  visitType: "WALK_IN" | "APPOINTMENT"
-  appointmentTime: string | null
-  createdAt: string
+  status: "WAITING" | "NOW_SERVING" | "COMPLETED" | "CANCELLED"
+  // visitType: "WALK_IN" | "APPOINTMENT"
+  specialization: string
+  appointmentDate: string
 }
 
 interface RegistrationResult {
@@ -41,6 +43,13 @@ interface RegistrationResult {
   patientName: string
   phone: string
 }
+
+const SPECIALIZATIONS = [
+  "CONSULTANT_SURGEON",
+  "DERMATOLOGIST",
+  "GENERAL_PHYSICIAN",
+  "PEDIATRICIAN",
+]
 
 const recentAppointments = [
   {
@@ -87,11 +96,11 @@ function getStatusClasses(status: string) {
 
 function getQueueStatusClasses(status: string) {
   switch (status) {
-    case "Waiting":
+    case "WAITING":
       return "bg-amber-100 text-amber-700 border border-amber-200"
-    case "In Progress":
+    case "NOW_SERVING":
       return "bg-sky-100 text-sky-700 border border-sky-200"
-    case "Completed":
+    case "COMPLETED":
       return "bg-emerald-100 text-emerald-700 border border-emerald-200"
     default:
       return "bg-slate-100 text-slate-700 border border-slate-200"
@@ -103,39 +112,60 @@ const DashboardPage = () => {
   const [stats, setStats] = useState({
     total: 0,
     waiting: 0,
-    inProgress: 0,
+    nowServing: 0,
     completed: 0,
   })
 
   const [patientName, setPatientName] = useState("")
   const [phone, setPhone] = useState("")
+  const [specialization, setSpecialization] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState<RegistrationResult | null>(null)
   const [error, setError] = useState("")
 
   const fetchQueue = useCallback(async () => {
-    try {
-      const res = await api.get("/api/queue/today")
-      const entries: QueueEntry[] = res.data
-      setQueue(entries)
+  try {
+    const entries: QueueEntry[] = await getTodayQueue()
 
-      const total = entries.length
-      const waiting = entries.filter((e) => e.status === "WAITING").length
-      const inProgress = entries.filter(
-        (e) => e.status === "IN_PROGRESS"
-      ).length
-      const completed = entries.filter((e) => e.status === "COMPLETED").length
+    setQueue(entries)
 
-      setStats({
-        total,
-        waiting,
-        inProgress,
-        completed,
-      })
-    } catch (err) {
-      console.error("Failed to fetch queue:", err)
-    }
-  }, [])
+    setStats({
+      total: entries.length,
+      waiting: entries.filter((e) => e.status === "WAITING").length,
+      nowServing: entries.filter(
+        (e) => e.status === "NOW_SERVING"
+      ).length,
+      completed: entries.filter(
+        (e) => e.status === "COMPLETED"
+      ).length,
+    })
+  } catch (err) {
+    console.error("Failed to fetch queue:", err)
+  }
+}, [])
+
+  // const fetchQueue = useCallback(async () => {
+  //   try {
+  //     const entries: QueueEntry[] = await getTodayQueue()
+  //     setQueue(entries)
+
+  //     const total = entries.length
+  //     const waiting = entries.filter((e) => e.status === "WAITING").length
+  //     const nowServing = entries.filter(
+  //       (e) => e.status === "NOW_SERVING"
+  //     ).length
+  //     const completed = entries.filter((e) => e.status === "COMPLETED").length
+
+  //     setStats({
+  //       total,
+  //       waiting,
+  //       nowServing,
+  //       completed,
+  //     })
+  //   } catch (err) {
+  //     console.error("Failed to fetch queue:", err)
+  //   }
+  // }, [])
 
   useEffect(() => {
     fetchQueue()
@@ -146,8 +176,8 @@ const DashboardPage = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!patientName.trim() || !phone.trim()) {
-      setError("Patient name and phone number are required")
+    if (!patientName || !phone || !specialization) {
+      setError("All fields are required")
       return
     }
 
@@ -156,27 +186,24 @@ const DashboardPage = () => {
     setSuccess(null)
 
     try {
-      const res = await api.post("/api/patients/register", {
-        name: patientName.trim(),
+      const res = await createAppointment({
+        patientName: patientName.trim(),
         phone: phone.trim(),
+        specialization,
       })
 
       setSuccess({
-        tokenNumber: res.data.tokenNumber,
-        patientName: res.data.name || patientName.trim(),
-        phone: res.data.phone || phone.trim(),
+        tokenNumber: res.tokenNumber,
+        patientName: res.patientName,
+        phone: res.phone,
       })
 
       setPatientName("")
       setPhone("")
+      setSpecialization("")
       fetchQueue()
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        "Registration failed"
-
-      setError(msg)
+      setError(err?.response?.data?.message || "Registration failed")
     } finally {
       setSubmitting(false)
     }
@@ -185,7 +212,6 @@ const DashboardPage = () => {
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
       <div className="flex min-h-screen">
-
         {/* Main */}
         <section className="min-w-0 flex-1">
           {/* Topbar */}
@@ -260,10 +286,10 @@ const DashboardPage = () => {
                 <CardContent className="flex items-center justify-between p-6">
                   <div>
                     <p className="text-sm font-medium tracking-wide text-slate-500 uppercase">
-                      In Progress
+                      Now Serving
                     </p>
                     <h3 className="mt-2 text-3xl font-bold text-slate-900">
-                      {stats.inProgress}
+                      {stats.nowServing}
                     </h3>
                     <p className="mt-1 text-xs text-emerald-600">
                       Being seen now
@@ -317,7 +343,6 @@ const DashboardPage = () => {
                         Patient Name
                       </Label>
                       <Input
-                        id="patientName"
                         value={patientName}
                         onChange={(e) => setPatientName(e.target.value)}
                         placeholder="Enter patient full name"
@@ -333,12 +358,33 @@ const DashboardPage = () => {
                         Phone Number
                       </Label>
                       <Input
-                        id="phoneNumber"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="Enter phone number"
                         className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base text-slate-900 shadow-sm placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400"
                       />
+                    </div>
+
+                    {/*SPECIALIZATION DROPDOWN */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="specialization"
+                        className="text-sm font-semibold tracking-wide text-slate-600 uppercase"
+                      >
+                        Specialization
+                      </Label>
+                      <select
+                        value={specialization}
+                        onChange={(e) => setSpecialization(e.target.value)}
+                        className="h-14 rounded-2xl border-slate-200 bg-white/80 px-5 text-base text-slate-900 shadow-sm placeholder:text-slate-400 focus-visible:border-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400"
+                      >
+                        <option value="">Select specialization</option>
+                        {SPECIALIZATIONS.map((sp) => (
+                          <option key={sp} value={sp}>
+                            {sp.replaceAll("_", " ")}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <Button
@@ -365,6 +411,7 @@ const DashboardPage = () => {
                 </CardContent>
               </Card>
 
+{/* queue table */}
               <Card className="rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur">
                 <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div>

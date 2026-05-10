@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bell,Plus } from "lucide-react"
+import { Bell, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -18,14 +18,13 @@ import { createDoctor } from "../../../../services/doctorService"
 import { CreateDoctorDto } from "@/app/types/doctor"
 import { useRouter } from "next/navigation"
 
-
 export default function AddDoctorPage() {
   const router = useRouter()
 
   const [formData, setFormData] = useState<CreateDoctorDto>({
     name: "",
     email: "",
-    phone: "",  
+    phone: "",
     specialization: "GENERAL_PHYSICIAN",
     availableTime: "",
     status: "DUTY",
@@ -36,15 +35,13 @@ export default function AddDoctorPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData({ 
-      ...formData, 
+    setFormData({
+      ...formData,
       [e.target.name]: e.target.value,
     })
   }
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
@@ -60,9 +57,10 @@ export default function AddDoctorPage() {
         availableTime: "",
         status: "DUTY",
       })
-    } catch (error) {
-      console.error("Error adding doctor:", error)
-      alert("Failed to add doctor.")
+    } catch (error: any) {
+      console.error("FULL ERROR:", error.response?.data || error)
+
+      alert(error.response?.data?.message || "Failed to add doctor.")
     } finally {
       setLoading(false)
     }
@@ -113,9 +111,10 @@ export default function AddDoctorPage() {
             </CardHeader>
 
             <CardContent>
-              <form 
-              onSubmit={handleSubmit}
-              className="grid gap-6 md:grid-cols-2">
+              <form
+                onSubmit={handleSubmit}
+                className="grid gap-6 md:grid-cols-2"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="doctorName">Doctor Name</Label>
                   <Input
@@ -139,17 +138,11 @@ export default function AddDoctorPage() {
                       Consultant Surgeon
                     </option>
 
-                    <option value="DERMATOLOGIST">
-                      Dermatologist
-                    </option>
+                    <option value="DERMATOLOGIST">Dermatologist</option>
 
-                    <option value="GENERAL_PHYSICIAN">
-                      General Physician
-                    </option>
+                    <option value="GENERAL_PHYSICIAN">General Physician</option>
 
-                    <option value="PEDIATRICIAN">
-                      Pediatrician
-                    </option>
+                    <option value="PEDIATRICIAN">Pediatrician</option>
                   </select>
                 </div>
 
@@ -210,10 +203,11 @@ export default function AddDoctorPage() {
                     Cancel
                   </Button>
 
-                  <Button 
+                  <Button
                     type="submit"
                     disabled={loading}
-                    className="h-12 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-8 text-lg font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105">
+                    className="h-12 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-8 text-lg font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105"
+                  >
                     <Plus className="mr-2 h-5 w-5" />
                     {loading ? "Adding..." : "Add Doctor"}
                   </Button>
