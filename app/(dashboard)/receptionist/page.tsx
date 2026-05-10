@@ -24,8 +24,13 @@ import { useCallback, useEffect, useState } from "react"
 import api from "@/lib/api"
 import Link from "next/link"
 import TopbarDate from "@/components/topbar-date"
-import { createAppointment, getTodayQueue, updateAppointmentStatus } from "@/app/services/appointment"
-import { createDoctor } from "@/app/services/doctorService"
+import {
+  createAppointment,
+  getTodayQueue,
+  updateAppointmentStatus,
+} from "@/app/services/appointment"
+import { getAllDoctors } from "@/app/services/doctorService"
+import { Doctor } from "@/app/types/doctor"
 
 interface QueueEntry {
   id: string
@@ -75,11 +80,6 @@ const recentAppointments = [
   },
 ]
 
-const doctorsOnDuty = [
-  { name: "Dr. Silva", specialty: "General Physician", patients: 12 },
-  { name: "Dr. Peris", specialty: "Pediatrician", patients: 8 },
-  { name: "Dr. Fernando", specialty: "Dermatologist", patients: 6 },
-]
 
 function getStatusClasses(status: string) {
   switch (status) {
@@ -108,6 +108,7 @@ function getQueueStatusClasses(status: string) {
 }
 
 const DashboardPage = () => {
+  const [doctorsOnDuty, setDoctorsOnDuty] = useState<Doctor[]>([])
   const [queue, setQueue] = useState<QueueEntry[]>([])
   const [stats, setStats] = useState({
     total: 0,
@@ -123,55 +124,59 @@ const DashboardPage = () => {
   const [success, setSuccess] = useState<RegistrationResult | null>(null)
   const [error, setError] = useState("")
 
-  const fetchQueue = useCallback(async () => {
+  const fetchDoctors = async () => {
   try {
-    const entries: QueueEntry[] = await getTodayQueue()
-
-    setQueue(entries)
-
-    setStats({
-      total: entries.length,
-      waiting: entries.filter((e) => e.status === "WAITING").length,
-      nowServing: entries.filter(
-        (e) => e.status === "NOW_SERVING"
-      ).length,
-      completed: entries.filter(
-        (e) => e.status === "COMPLETED"
-      ).length,
-    })
+    const data = await getAllDoctors()
+    const dutyDoctors = data.filter((doc: Doctor) => doc.status === "DUTY")
+    setDoctorsOnDuty(dutyDoctors)
   } catch (err) {
-    console.error("Failed to fetch queue:", err)
+    console.error("Failed to fetch doctors:", err)
   }
-}, [])
+}
 
-  // const fetchQueue = useCallback(async () => {
-  //   try {
-  //     const entries: QueueEntry[] = await getTodayQueue()
-  //     setQueue(entries)
+  const fetchQueue = useCallback(async () => {
+    try {
+      const entries: QueueEntry[] = await getTodayQueue()
 
-  //     const total = entries.length
-  //     const waiting = entries.filter((e) => e.status === "WAITING").length
-  //     const nowServing = entries.filter(
-  //       (e) => e.status === "NOW_SERVING"
-  //     ).length
-  //     const completed = entries.filter((e) => e.status === "COMPLETED").length
+      setQueue(entries)
 
-  //     setStats({
-  //       total,
-  //       waiting,
-  //       nowServing,
-  //       completed,
-  //     })
-  //   } catch (err) {
-  //     console.error("Failed to fetch queue:", err)
-  //   }
-  // }, [])
+      setStats({
+        total: entries.length,
+        waiting: entries.filter((e) => e.status === "WAITING").length,
+        nowServing: entries.filter((e) => e.status === "NOW_SERVING").length,
+        completed: entries.filter((e) => e.status === "COMPLETED").length,
+      })
+    } catch (err) {
+      console.error("Failed to fetch queue:", err)
+    }
+  }, [])
 
   useEffect(() => {
     fetchQueue()
+    fetchDoctors()
+
     const interval = setInterval(fetchQueue, 10000)
     return () => clearInterval(interval)
   }, [fetchQueue])
+
+  const handleStatusChange = async (id: string, currentStatus: string) => {
+    let nextStatus = "WAITING"
+
+    if (currentStatus === "WAITING") {
+      nextStatus = "NOW_SERVING"
+    } else if (currentStatus === "NOW_SERVING") {
+      nextStatus = "COMPLETED"
+    } else if (currentStatus === "COMPLETED") {
+      nextStatus = "WAITING"
+    }
+
+    try {
+      await updateAppointmentStatus(id, nextStatus)
+      fetchQueue()
+    } catch (err) {
+      console.error("Failed to update status", err)
+    }
+  }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -411,7 +416,7 @@ const DashboardPage = () => {
                 </CardContent>
               </Card>
 
-{/* queue table */}
+              {/* queue table */}
               <Card className="rounded-[28px] border border-white/60 bg-white/85 shadow-2xl shadow-sky-100 backdrop-blur">
                 <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div>
@@ -481,16 +486,8 @@ const DashboardPage = () => {
                             </td>
 
                             <td className="px-4 py-4">
-                              <span
-                                className={`inline-flex rounded-xl px-3 py-1 text-xs font-semibold ${
-                                  item.visitType === "WALK_IN"
-                                    ? "bg-slate-100 text-slate-600"
-                                    : "bg-violet-100 text-violet-700"
-                                }`}
-                              >
-                                {item.visitType === "WALK_IN"
-                                  ? "Walk-in"
-                                  : `Appt ${item.appointmentTime || ""}`}
+                              <span className="inline-flex rounded-xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                Walk-in
                               </span>
                             </td>
 
@@ -499,13 +496,16 @@ const DashboardPage = () => {
                             </td>
 
                             <td className="px-4 py-4">
-                              <span
-                                className={`inline-flex rounded-xl px-3 py-1 text-xs font-semibold ${getQueueStatusClasses(
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(item.id, item.status)
+                                }
+                                className={`inline-flex rounded-xl px-3 py-1 text-xs font-semibold transition hover:scale-105 ${getQueueStatusClasses(
                                   item.status
                                 )}`}
                               >
                                 {item.status.replace("_", " ")}
-                              </span>
+                              </button>
                             </td>
                           </tr>
                         ))
@@ -583,7 +583,7 @@ const DashboardPage = () => {
                               {doctor.name}
                             </p>
                             <p className="text-sm text-slate-500">
-                              {doctor.specialty}
+                              {doctor.specialization}
                             </p>
                           </div>
                         </div>
