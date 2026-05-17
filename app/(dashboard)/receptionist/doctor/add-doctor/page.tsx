@@ -1,3 +1,5 @@
+
+import { useState } from "react"
 import { Bell, Search, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -11,8 +13,58 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import TopbarDate from "@/components/topbar-date"
+import { createDoctor } from "../../../../services/doctorService"
+import { CreateDoctorDto } from "@/app/types/doctor"
+import { useRouter } from "next/navigation"
 
 export default function AddDoctorPage() {
+  const router = useRouter()
+
+  const [formData, setFormData] = useState<CreateDoctorDto>({
+    name: "",
+    email: "",
+    phone: "",
+    specialization: "GENERAL_PHYSICIAN",
+    availableTime: "",
+    status: "DUTY",
+  })
+
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    try {
+      setLoading(true)
+      await createDoctor(formData)
+      router.push("/receptionist/doctor")
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        specialization: "GENERAL_PHYSICIAN",
+        availableTime: "",
+        status: "DUTY",
+      })
+    } catch (error: any) {
+      console.error("FULL ERROR:", error.response?.data || error)
+
+      alert(error.response?.data?.message || "Failed to add doctor.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-cyan-100 text-slate-900">
       <section className="min-h-screen">
@@ -58,7 +110,10 @@ export default function AddDoctorPage() {
             </CardHeader>
 
             <CardContent>
-              <form className="grid gap-6 md:grid-cols-2">
+              <form
+                onSubmit={handleSubmit}
+                className="grid gap-6 md:grid-cols-2"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="doctorName">Doctor Name</Label>
                   <Input
@@ -70,11 +125,22 @@ export default function AddDoctorPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="specialization">Specialization</Label>
-                  <Input
-                    id="specialization"
-                    placeholder="Cardiologist / Pediatrician / ENT"
-                    className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
-                  />
+                  <select
+                    name="specialization"
+                    value={formData.specialization}
+                    onChange={handleChange}
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3"
+                  >
+                    <option value="CONSULTANT_SURGEON">
+                      Consultant Surgeon
+                    </option>
+
+                    <option value="DERMATOLOGIST">Dermatologist</option>
+
+                    <option value="GENERAL_PHYSICIAN">General Physician</option>
+
+                    <option value="PEDIATRICIAN">Pediatrician</option>
+                  </select>
                 </div>
 
                 <div className="space-y-2">
@@ -140,7 +206,11 @@ export default function AddDoctorPage() {
                     Cancel
                   </Button>
 
-                  <Button className="h-12 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-8 text-lg font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105">
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="h-12 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-8 text-lg font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105"
+                  >
                     <Plus className="mr-2 h-5 w-5" />
                     Add Doctor
                   </Button>

@@ -5,9 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 const Queue = () => {
 
   const queue = {
-    current: "A12",
-    previous: "A11",
-    next: "A13",
+    current: "1",
+    previous: "",
+    next: "2",
   };
 
   return (
