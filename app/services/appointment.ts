@@ -12,8 +12,13 @@ export const createAppointment = async (data: {
 };
 
 export const getTodayQueue = async () => {
-  const res = await axios.get(`${API}/queue/today`)
-  return res.data
+  try {
+    const res = await axios.get(`${API}/queue/today?t=${Date.now()}`)
+    return res.data
+  } catch (err) {
+    console.error("QUEUE API ERROR:", err)
+    throw err
+  }
 }
 
 export const updateAppointmentStatus = async (
