@@ -1,7 +1,6 @@
-"use client"
 
 import { useState } from "react"
-import { Bell, Plus } from "lucide-react"
+import { Bell, Search, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -118,9 +117,7 @@ export default function AddDoctorPage() {
                 <div className="space-y-2">
                   <Label htmlFor="doctorName">Doctor Name</Label>
                   <Input
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
+                    id="doctorName"
                     placeholder="Enter doctor name"
                     className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
                   />
@@ -149,10 +146,8 @@ export default function AddDoctorPage() {
                 <div className="space-y-2">
                   <Label htmlFor="doctorEmail">Email</Label>
                   <Input
-                    name="email"
+                    id="doctorEmail"
                     type="email"
-                    value={formData.email}
-                    onChange={handleChange}
                     placeholder="doctor@clinic.com"
                     className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
                   />
@@ -161,11 +156,17 @@ export default function AddDoctorPage() {
                 <div className="space-y-2">
                   <Label htmlFor="doctorPhone">Phone Number</Label>
                   <Input
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    maxLength={10}
-                    placeholder="077 123 4567"
+                    id="doctorPhone"
+                    placeholder="+94 77 123 4567"
+                    className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="availableDays">Available Days</Label>
+                  <Input
+                    id="availableDays"
+                    placeholder="Mon - Fri"
                     className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
                   />
                 </div>
@@ -173,30 +174,32 @@ export default function AddDoctorPage() {
                 <div className="space-y-2">
                   <Label htmlFor="availableTime">Available Time</Label>
                   <Input
-                    name="availableTime"
-                    value={formData.availableTime}
-                    onChange={handleChange}
+                    id="availableTime"
                     placeholder="9:00 AM - 3:00 PM"
                     className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
                   />
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="consultationFee">Consultation Fee</Label>
+                  <Input
+                    id="consultationFee"
+                    placeholder="$50"
+                    className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="doctorStatus">Status</Label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3"
-                  >
-                    <option value="DUTY">Duty</option>
-                    <option value="LEAVE">Leave</option>
-                  </select>
+                  <Input
+                    id="doctorStatus"
+                    placeholder="Available / Busy / On Leave"
+                    className="h-12 rounded-xl border-slate-200 bg-white/80 focus-visible:ring-cyan-400"
+                  />
                 </div>
 
                 <div className="flex gap-80 md:col-span-2">
                   <Button
-                    type="button"
                     variant="outline"
                     className="h-12 rounded-full border-slate-200 bg-white px-8 text-lg font-semibold hover:bg-sky-50 hover:text-sky-700"
                   >
@@ -209,7 +212,7 @@ export default function AddDoctorPage() {
                     className="h-12 rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 px-8 text-lg font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105"
                   >
                     <Plus className="mr-2 h-5 w-5" />
-                    {loading ? "Adding..." : "Add Doctor"}
+                    Add Doctor
                   </Button>
                 </div>
               </form>
